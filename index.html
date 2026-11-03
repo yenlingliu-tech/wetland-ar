@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>濁水溪口｜AR 生物動畫</title>
+  <title>濁水溪口｜2.5D AR 濕地場景</title>
 
   <style>
     html, body {
@@ -37,7 +37,6 @@
 </head>
 
 <body>
-
   <div id="ar-container">
 
     <a-scene
@@ -47,12 +46,11 @@
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false">
 
-      <!-- 載入招潮蟹 PNG -->
+      <!-- 載入所有圖片 -->
       <a-assets>
-        <img
-          id="crabImage"
-          src="./未命名的作品%20(2).png"
-          crossorigin="anonymous">
+        <img id="background" src="./background.png">
+        <img id="crab" src="./未命名的作品%20(2).png">
+        <img id="foreground" src="./foreground.png">
       </a-assets>
 
       <!-- AR 相機 -->
@@ -61,20 +59,45 @@
         look-controls="enabled: false">
       </a-camera>
 
-      <!-- 辨識圖卡 -->
+      <!-- 圖卡辨識 -->
       <a-entity mindar-image-target="targetIndex: 0">
 
-        <!-- 招潮蟹 PNG 位移動畫 -->
+        <!-- 第一層：背景 -->
         <a-image
-          src="#crabImage"
+          src="#background"
+          width="1.5"
+          height="0.9"
+          position="0 0 0.01"
+          material="shader: flat; transparent: true; alphaTest: 0.01; side: double">
+        </a-image>
+
+        <!-- 第二層：招潮蟹 -->
+        <a-image
+          src="#crab"
           width="1.5"
           height="0.9"
           position="0 0 0.1"
           material="shader: flat; transparent: true; alphaTest: 0.01; side: double"
           animation="property: position;
-                     from: 0 -0.04 0.1;
-                     to: 0 0.08 0.1;
+                     from: 0 -0.03 0.1;
+                     to: 0 0.05 0.1;
                      dur: 1500;
+                     dir: alternate;
+                     loop: true;
+                     easing: easeInOutSine">
+        </a-image>
+
+        <!-- 第三層：前景 -->
+        <a-image
+          src="#foreground"
+          width="1.5"
+          height="0.9"
+          position="0 0 0.2"
+          material="shader: flat; transparent: true; alphaTest: 0.01; side: double"
+          animation="property: position;
+                     from: -0.02 0 0.2;
+                     to: 0.02 0 0.2;
+                     dur: 2200;
                      dir: alternate;
                      loop: true;
                      easing: easeInOutSine">
@@ -85,6 +108,5 @@
     </a-scene>
 
   </div>
-
 </body>
 </html>
