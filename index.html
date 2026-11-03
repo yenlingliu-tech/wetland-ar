@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-  <title>濁水溪口｜2.5D AR 穩定測試版</title>
+  <title>濁水溪口｜2.5D AR 生物動畫</title>
 
   <style>
     html, body {
@@ -32,25 +33,12 @@
       width: 100% !important;
       height: 100% !important;
     }
-
-    #status {
-      position: fixed;
-      top: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 8px 14px;
-      background: rgba(0, 0, 0, 0.6);
-      color: white;
-      border-radius: 8px;
-      font-size: 13px;
-      z-index: 9999;
-      pointer-events: none;
-    }
   </style>
 
-  <!-- 載入 A-Frame 和 MindAR -->
+  <!-- 載入 A-Frame 與 MindAR -->
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
 </head>
 
 <body>
@@ -61,16 +49,16 @@
       embedded
       mindar-image="
         imageTargetSrc: ./targets.mind;
-        filterMinCF: 0.0005;
+        filterMinCF: 0.001;
         filterBeta: 1000;
         warmupTolerance: 5;
-        missTolerance: 10;
+        missTolerance: 5;
       "
       color-space="sRGB"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false">
 
-      <!-- 載入三張 PNG -->
+      <!-- 圖片素材 -->
       <a-assets timeout="30000">
 
         <img
@@ -98,7 +86,7 @@
         id="target"
         mindar-image-target="targetIndex: 0">
 
-        <!-- 第一層：背景 -->
+        <!-- 第一層：背景，固定不動 -->
         <a-image
           src="#bg"
           width="1.4"
@@ -112,7 +100,7 @@
             side: double">
         </a-image>
 
-        <!-- 第二層：中景 -->
+        <!-- 第二層：中景，明顯上下移動 -->
         <a-image
           src="#crab"
           width="1.1"
@@ -126,15 +114,15 @@
             side: double"
           animation="
             property: position;
-            from: -0.12 -0.015 0.08;
-            to: -0.12 0.015 0.08;
-            dur: 3000;
+            from: -0.12 -0.06 0.08;
+            to: -0.12 0.06 0.08;
+            dur: 1800;
             dir: alternate;
             loop: true;
             easing: easeInOutSine">
         </a-image>
 
-        <!-- 第三層：前景 -->
+        <!-- 第三層：前景，明顯左右移動 -->
         <a-image
           src="#front"
           width="0.65"
@@ -146,14 +134,14 @@
             alphaTest: 0.02;
             depthWrite: false;
             side: double"
-        animation="
-  property: position;
-  from: 0.28 -0.23 0.22;
-  to: 0.40 -0.23 0.22;
-  dur: 2000;
-  dir: alternate;
-  loop: true;
-  easing: easeInOutSine">
+          animation="
+            property: position;
+            from: 0.28 -0.23 0.22;
+            to: 0.40 -0.23 0.22;
+            dur: 2000;
+            dir: alternate;
+            loop: true;
+            easing: easeInOutSine">
         </a-image>
 
       </a-entity>
@@ -161,22 +149,6 @@
     </a-scene>
 
   </div>
-
-  <!-- 狀態提示 -->
-  <div id="status">正在啟動 AR...</div>
-
-  <script>
-    const statusBox = document.getElementById("status");
-    const target = document.getElementById("target");
-
-    target.addEventListener("targetFound", () => {
-      statusBox.textContent = "✓ 圖卡辨識成功";
-    });
-
-    target.addEventListener("targetLost", () => {
-      statusBox.textContent = "請將相機對準圖卡";
-    });
-  </script>
 
 </body>
 </html>
