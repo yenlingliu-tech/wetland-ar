@@ -5,7 +5,7 @@
   <meta name="viewport"
     content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-  <title>濁水溪口｜2.5D AR</title>
+  <title>濁水溪口｜穩定版 2.5D AR</title>
 
   <style>
     html, body {
@@ -19,8 +19,7 @@
 
     #ar-container {
       position: fixed;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100vw;
       height: 100vh;
       height: 100dvh;
@@ -38,25 +37,11 @@
       top: 15px;
       left: 50%;
       transform: translateX(-50%);
-      background: rgba(0,0,0,0.65);
+      padding: 8px 14px;
+      background: rgba(0,0,0,0.6);
       color: white;
-      padding: 10px 15px;
-      border-radius: 10px;
-      font-size: 14px;
-      z-index: 9999;
-      pointer-events: none;
-      text-align: center;
-    }
-
-    #files {
-      position: fixed;
-      bottom: 20px;
-      left: 10px;
-      background: rgba(0,0,0,0.65);
-      color: white;
-      padding: 10px;
       border-radius: 8px;
-      font-size: 12px;
+      font-size: 13px;
       z-index: 9999;
       pointer-events: none;
     }
@@ -72,26 +57,21 @@
 
     <a-scene
       embedded
-      mindar-image="imageTargetSrc: ./targets.mind;"
+      mindar-image="
+        imageTargetSrc: ./targets.mind;
+        filterMinCF: 0.0005;
+        filterBeta: 100;
+        warmupTolerance: 5;
+        missTolerance: 10;
+      "
       color-space="sRGB"
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false">
 
-      <!-- 載入三張 PNG -->
       <a-assets timeout="30000">
-
-        <img
-          id="bg"
-          src="./background-small.png">
-
-        <img
-          id="crab"
-          src="./未命名的作品%20(2).png">
-
-        <img
-          id="front"
-          src="./foreground.png">
-
+        <img id="bg" src="./background-small.png">
+        <img id="crab" src="./未命名的作品%20(2).png">
+        <img id="front" src="./foreground.png">
       </a-assets>
 
       <!-- 相機 -->
@@ -100,12 +80,12 @@
         look-controls="enabled: false">
       </a-camera>
 
-      <!-- AR 圖卡 -->
+      <!-- 辨識圖卡 -->
       <a-entity
         id="target"
         mindar-image-target="targetIndex: 0">
 
-        <!-- 第一層：背景 -->
+        <!-- 第一層：背景，完全固定 -->
         <a-image
           src="#bg"
           width="1.4"
@@ -118,7 +98,7 @@
                     side: double">
         </a-image>
 
-        <!-- 第二層：中景生物 -->
+        <!-- 第二層：主角，微幅上下浮動 -->
         <a-image
           src="#crab"
           width="1.1"
@@ -130,15 +110,15 @@
                     depthWrite: false;
                     side: double"
           animation="property: position;
-                     from: -0.12 -0.04 0.08;
-                     to: -0.12 0.04 0.08;
-                     dur: 1500;
+                     from: -0.12 -0.015 0.08;
+                     to: -0.12 0.015 0.08;
+                     dur: 3000;
                      dir: alternate;
                      loop: true;
                      easing: easeInOutSine">
         </a-image>
 
-        <!-- 第三層：前景生物 -->
+        <!-- 第三層：前景，極輕微左右移動 -->
         <a-image
           src="#front"
           width="0.65"
@@ -150,9 +130,9 @@
                     depthWrite: false;
                     side: double"
           animation="property: position;
-                     from: 0.30 -0.23 0.22;
-                     to: 0.36 -0.23 0.22;
-                     dur: 2200;
+                     from: 0.33 -0.23 0.22;
+                     to: 0.35 -0.23 0.22;
+                     dur: 4000;
                      dir: alternate;
                      loop: true;
                      easing: easeInOutSine">
@@ -164,75 +144,19 @@
 
   </div>
 
-  <!-- 顯示載入狀態 -->
-  <div id="status">正在載入 AR...</div>
-  <div id="files">圖片檢查中...</div>
+  <div id="status">正在啟動 AR...</div>
 
   <script>
     const statusBox = document.getElementById("status");
-    const filesBox = document.getElementById("files");
-
-    const images = [
-      { id: "bg", name: "背景" },
-      { id: "crab", name: "中景" },
-      { id: "front", name: "前景" }
-    ];
-
-    let found = false;
-
-    function checkImages() {
-      const lines = [];
-      const missing = [];
-      let allLoaded = true;
-
-      images.forEach(item => {
-        const img = document.getElementById(item.id);
-
-        if (img.complete && img.naturalWidth > 0) {
-          lines.push("✓ " + item.name);
-        } else if (img.complete && img.naturalWidth === 0) {
-          lines.push("✕ " + item.name);
-          missing.push(item.name);
-          allLoaded = false;
-        } else {
-          lines.push("… " + item.name + "載入中");
-          allLoaded = false;
-        }
-      });
-
-      filesBox.textContent = lines.join(" ｜ ");
-
-      if (missing.length > 0) {
-        statusBox.textContent =
-          "圖片載入失敗：" + missing.join("、");
-      } else if (!allLoaded) {
-        statusBox.textContent = "正在載入圖片...";
-      } else if (found) {
-        statusBox.textContent = "✓ 已辨識圖卡";
-      } else {
-        statusBox.textContent = "請將相機對準圖卡";
-      }
-    }
-
-    images.forEach(item => {
-      const img = document.getElementById(item.id);
-      img.addEventListener("load", checkImages);
-      img.addEventListener("error", checkImages);
-    });
-
     const target = document.getElementById("target");
 
     target.addEventListener("targetFound", () => {
-      found = true;
-      checkImages();
+      statusBox.textContent = "✓ 圖卡辨識成功";
     });
 
     target.addEventListener("targetLost", () => {
-      found = false;
-      checkImages();
+      statusBox.textContent = "請將相機對準圖卡";
     });
-
-    checkImages();
   </script>
 
 </body>
