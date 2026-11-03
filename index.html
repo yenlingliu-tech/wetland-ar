@@ -1,9 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>濁水溪口｜2.5D AR 濕地場景</title>
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+  <title>濁水溪口｜2.5D AR</title>
 
   <style>
     html, body {
@@ -30,6 +33,34 @@
       width: 100% !important;
       height: 100% !important;
     }
+
+    #status {
+      position: fixed;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.65);
+      color: white;
+      padding: 10px 15px;
+      border-radius: 10px;
+      font-size: 14px;
+      z-index: 9999;
+      pointer-events: none;
+      text-align: center;
+    }
+
+    #files {
+      position: fixed;
+      bottom: 20px;
+      left: 10px;
+      background: rgba(0,0,0,0.65);
+      color: white;
+      padding: 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      z-index: 9999;
+      pointer-events: none;
+    }
   </style>
 
   <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
@@ -37,6 +68,7 @@
 </head>
 
 <body>
+
   <div id="ar-container">
 
     <a-scene
@@ -46,57 +78,81 @@
       vr-mode-ui="enabled: false"
       device-orientation-permission-ui="enabled: false">
 
-      <!-- 載入所有圖片 -->
-      <a-assets>
-        <img id="background" src="./background.png">
-        <img id="crab" src="./未命名的作品%20(2).png">
-        <img id="foreground" src="./foreground.png">
+      <!-- 載入三張 PNG -->
+      <a-assets timeout="30000">
+
+        <img
+          id="bg"
+          src="./background-small.png">
+
+        <img
+          id="crab"
+          src="./未命名的作品%20(2).png">
+
+        <img
+          id="front"
+          src="./foreground.png">
+
       </a-assets>
 
-      <!-- AR 相機 -->
+      <!-- 相機 -->
       <a-camera
         position="0 0 0"
         look-controls="enabled: false">
       </a-camera>
 
-      <!-- 圖卡辨識 -->
-      <a-entity mindar-image-target="targetIndex: 0">
+      <!-- AR 圖卡 -->
+      <a-entity
+        id="target"
+        mindar-image-target="targetIndex: 0">
 
         <!-- 第一層：背景 -->
         <a-image
-          src="#background"
-          width="1.5"
-          height="0.9"
-          position="0 0 0.01"
-          material="shader: flat; transparent: true; alphaTest: 0.01; side: double">
+          src="#bg"
+          width="1.4"
+          height="0.84"
+          position="0 0 -0.08"
+          material="shader: flat;
+                    transparent: true;
+                    alphaTest: 0.02;
+                    depthWrite: false;
+                    side: double">
         </a-image>
 
-        <!-- 第二層：招潮蟹 -->
+        <!-- 第二層：中景生物 -->
         <a-image
           src="#crab"
-          width="1.5"
-          height="0.9"
-          position="0 0 0.1"
-          material="shader: flat; transparent: true; alphaTest: 0.01; side: double"
+          width="1.1"
+          height="0.75"
+          position="-0.12 0 0.08"
+          material="shader: flat;
+                    transparent: true;
+                    alphaTest: 0.02;
+                    depthWrite: false;
+                    side: double"
           animation="property: position;
-                     from: 0 -0.03 0.1;
-                     to: 0 0.05 0.1;
+                     from: -0.12 -0.04 0.08;
+                     to: -0.12 0.04 0.08;
                      dur: 1500;
                      dir: alternate;
                      loop: true;
                      easing: easeInOutSine">
         </a-image>
 
-        <!-- 第三層：前景 -->
+        <!-- 第三層：前景生物 -->
         <a-image
-          src="#foreground"
-          width="1.5"
-          height="0.9"
-          position="0 0 0.2"
-          material="shader: flat; transparent: true; alphaTest: 0.01; side: double"
+          src="#front"
+          width="0.65"
+          height="0.6"
+          position="0.34 -0.23 0.22"
+          material="shader: flat;
+                    transparent: true;
+                    alphaTest: 0.02;
+                    depthWrite: false;
+                    side: double"
           animation="property: position;
-                     from: -0.02 0 0.2;
-                     to: 0.02 0 0.2;
+                     from: 0.30 -0.23 0.22;
+                     to: 0.36 -0.23 0.22;
                      dur: 2200;
                      dir: alternate;
                      loop: true;
@@ -108,5 +164,77 @@
     </a-scene>
 
   </div>
+
+  <!-- 顯示載入狀態 -->
+  <div id="status">正在載入 AR...</div>
+  <div id="files">圖片檢查中...</div>
+
+  <script>
+    const statusBox = document.getElementById("status");
+    const filesBox = document.getElementById("files");
+
+    const images = [
+      { id: "bg", name: "背景" },
+      { id: "crab", name: "中景" },
+      { id: "front", name: "前景" }
+    ];
+
+    let found = false;
+
+    function checkImages() {
+      const lines = [];
+      const missing = [];
+      let allLoaded = true;
+
+      images.forEach(item => {
+        const img = document.getElementById(item.id);
+
+        if (img.complete && img.naturalWidth > 0) {
+          lines.push("✓ " + item.name);
+        } else if (img.complete && img.naturalWidth === 0) {
+          lines.push("✕ " + item.name);
+          missing.push(item.name);
+          allLoaded = false;
+        } else {
+          lines.push("… " + item.name + "載入中");
+          allLoaded = false;
+        }
+      });
+
+      filesBox.textContent = lines.join(" ｜ ");
+
+      if (missing.length > 0) {
+        statusBox.textContent =
+          "圖片載入失敗：" + missing.join("、");
+      } else if (!allLoaded) {
+        statusBox.textContent = "正在載入圖片...";
+      } else if (found) {
+        statusBox.textContent = "✓ 已辨識圖卡";
+      } else {
+        statusBox.textContent = "請將相機對準圖卡";
+      }
+    }
+
+    images.forEach(item => {
+      const img = document.getElementById(item.id);
+      img.addEventListener("load", checkImages);
+      img.addEventListener("error", checkImages);
+    });
+
+    const target = document.getElementById("target");
+
+    target.addEventListener("targetFound", () => {
+      found = true;
+      checkImages();
+    });
+
+    target.addEventListener("targetLost", () => {
+      found = false;
+      checkImages();
+    });
+
+    checkImages();
+  </script>
+
 </body>
 </html>
